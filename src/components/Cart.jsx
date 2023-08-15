@@ -18,6 +18,55 @@ function Cart() {
     );
   }, [cart]);
 
+  // Payment
+
+  function loadscript(src) {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = src;
+
+      script.onload = () => {
+        resolve(true);
+      };
+
+      script.onerror = () => {
+        resolve(false);
+      };
+
+      document.body.appendChild(script);
+    });
+  }
+
+  async function displayRazorpay(amount) {
+    const res = await loadscript(
+      "https://checkout.razorpay.com/v1/checkout.js"
+    );
+
+    if (!res) {
+      alert("You're offline. Check your connection.");
+      return;
+    }
+
+    const options = {
+      key: "rzp_test_45P6LdYr2Lx96J",
+      currency: "INR",
+      amount: amount * 100,
+      name: "KrishFoods",
+      description: "Thanks for puchasing",
+
+      handler: function (response) {
+        alert("Your payment id " + response.razorpay_payment_id);
+        alert("Payment Successful");
+      },
+      prefill: {
+        name: "KrishFoods",
+      },
+    };
+
+    const paymentObject = new window.Razorpay(options);
+    paymentObject.open();
+  }
+
   return (
     <>
       <Navbar />
@@ -73,13 +122,18 @@ function Cart() {
             </li>
           </ul>
         </div>
-
         <div className="w-25 cartprice">
           <span className="title fs-2">Total {cart.length} items</span>
           <span style={{ fontWeight: 700 }} className="fs-4 my-2 pricetotal">
             Total: ₹ {total}
           </span>
-          <button className="btn btn-primary my-3" disabled={cart.length === 0}>
+          <button
+            className="btn btn-primary my-3"
+            disabled={cart.length === 0}
+            onClick={() => {
+              displayRazorpay(total);
+            }}
+          >
             Proceed to payment
           </button>
         </div>
